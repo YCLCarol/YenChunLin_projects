@@ -1,0 +1,180 @@
+---
+title: "DATA-612 Project"
+author: "Chen Hsu, Yen Chun Lin"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: "hide"
+    number_sections: TRUE
+    includes:
+    toc: true
+    toc_float: true
+    code_download: true
+    theme: united
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+library(plotly)
+library(dplyr)
+library(tidyverse)
+library(car)
+```
+
+```{r}
+exit_velocity <- read.csv("exit_velocity.csv", header=T)
+```
+
+# Data
+```{r}
+head(n=10,exit_velocity)
+```
+
+## Variable information
+
+- last_name..first_name: Players' name
+
+- player_id: Player ID
+
+- attempts: Batted ball events
+
+- avg_hit_angle: Average hitting angle
+
+- anglesweetspotpercent: Sweet Spot percentage (%)
+
+- max_hit_speed: Max hitting speed (MPH)
+
+- avg_hit_speed: Average hitting speed (MPH)
+
+- gb: GB%
+
+- max_distance: Max hitting distance (ft)
+
+- avg_distance: Average hitting distance (ft)
+
+- avg_hr_distance: Average home run hitting distance (ft)
+
+- ev95plus: Exit Velocity
+
+- ev95percent: Exit Velocity %
+
+- barrels: Barrels
+
+- brl_percent: Barrel %
+
+- brl_pa: Barrel/PA
+
+
+## Missing values
+```{r}
+show_missings <- function(df) {
+  n <- sum(is.na(df))
+  cat("Missing values: ", n, "\n", sep = "")
+  
+  invisible(df)
+}
+show_missings(exit_velocity)
+```
+
+- There are no missing values in the initial data set.
+
+## Rows, Columns
+```{r}
+dim(exit_velocity)
+```
+
+- There are 258 observations and 17 variables in the data set.
+
+# Objective data
+```{r}
+bh<-exit_velocity%>%
+  filter(max_distance>420)%>%
+  select(last_name..first_name,player_id,max_distance,anglesweetspotpercent,avg_hit_angle,max_hit_speed)%>%
+  filter(last_name..first_name %in% c("Olson, Matt","Schwarber, Kyle","	
+García, Adolis","Alonso, Pete","	
+Ohtani, Shohei","Acuña Jr., Ronald","	
+Ozuna, Marcell","Riley, Austin","Seager, Corey","	
+Betts, Mookie","	
+Robert Jr., Luis","Alvarez, Yordan","Judge, Aaron","Muncy, Max","Soler, Jorge","	
+Soto, Juan","Trout, Mike","Davis, J.D","Jiménez, Eloy","Correa, Carlos","Harris II, Michael","Pham, Tommy","Varsho, Daulton","Jones, Nolan","Bohm, Alec","Taylor, Michael A.","Murphy, Sean","Duvall, Adam","Bell, Josh","Suárez, Eugenio","Abreu, José","Langeliers, Shea","Steer, Spencer","	
+Outman, James","Arozarena, Randy","Perez, Salvador","Reynolds, Bryan","Casas, Triston","Stanton, Giancarlo","Kepler, Max","Nimmo, Brandon","Ramírez, José","Alvarez, Francisco","Siri, Jose","Goldschmidt, Paul","Bellinger, Cody","Morel, Christopher","Arenado, Nolan","Suwinski, Jack","	
+Guerrero Jr., Vladimir","Carroll, Corbin","Gorman, Nolan","Thomas, Lane","Turner, Trea","Witt Jr., Bobby","Henderson, Gunnar","Rooker, Brent","Raleigh, Cal","Machado, Manny","Santander, Anthony","Tucker, Kyle","Freeman, Freddie",""))%>%
+  arrange(desc(max_distance))
+head(bh,n=10)
+```
+
+- Setting 420 feet as the threshold because this is the home run distance that would result in a home run in all 30 stadiums in MLB.
+
+- Choose the players who have more then ten home runs with max home run distance greater than 420 feet in 2023.
+
+
+## Missing values
+```{r}
+show_missings <- function(df) {
+  n <- sum(is.na(df))
+  cat("Missing values: ", n, "\n", sep = "")
+  
+  invisible(df)
+}
+show_missings(bh)
+```
+
+- There are no missing values in the objective data set.
+
+## Rows, Columns
+```{r}
+dim(bh)
+```
+
+- There are 53 observations and 6 variables in the objective data set.
+
+- There are 53 players who have more than ten home runs with max home run distance greater than 420 feet in 2023
+
+
+## Diagnostic Plots
+```{r}
+hr<-lm(bh$max_distance~bh$anglesweetspotpercent+bh$max_hit_speed+bh$avg_hit_angle)
+influenceIndexPlot(hr)
+```
+
+- No influential cases in the objective data set.
+
+
+# Examples
+
+## Plot 1
+```{r}
+sp<- bh %>%
+  ggplot(aes(anglesweetspotpercent,max_distance , color = last_name..first_name)) + geom_point() + theme_bw()+ggtitle("Sweet Spot v.s. Max Home Run Distance")+labs(x="Sweet Spot Percentage", y="Max Home Run Disatance")
+
+ggplotly(sp)
+```
+
+- The most optimal range of sweet spot percentage to have a home run over 420 feet is between 25 to 45 percent.
+
+## Plot2
+```{r}
+a<- bh %>%
+  ggplot(aes(x =avg_hit_angle,y = max_distance,color = last_name..first_name)) +geom_point() +theme_bw()+ggtitle("Hit Angle v.s. Max Home Run Distance")+labs(x="Hit Angle", y="Max Home Run Disatance")
+ggplotly(a)
+```
+
+- The most optimal range of shitting angle to have a home run over 420 feet is between 5 to 30 degree.
+
+## Plot3
+```{r}
+s<- bh %>%
+  ggplot(aes(x =max_hit_speed , y=max_distance, color = last_name..first_name)) +geom_point() +theme_bw()+ggtitle("Max Hit Speed v.s. Max Home Run Distance")+labs(x="Max Hit Speed", y="Max Home Run Disatance")
+ggplotly(s)
+```
+
+- The most optimal range of max hitting speed to have a home run over 420 feet is between 110 to 120 miles per hour.
+
+
+# Conclusion
+
+- In this data analysis, we utilized interactive plot to analyze and create three graphs illustrating hitting information in Major League Baseball (MLB) for the 2023 season. Each dot provides detailed information. 
+
+- From the output, it is evident that the most optimal range for sweet spot percentage in hitting a home run over 420 feet is between 25% to 45%. Similarly, the most optimal hit angle for achieving a home run over 420 feet falls between 5 to 30 degrees. Additionally, the most effective range for the maximum hit speed in Miles Per Hour to secure a home run over 420 feet is between 110 to 120 MPH.
+
+
