@@ -5,4 +5,3 @@
 # Hi I am Yen Chun
 # Data Scientists
 # Projects
-# Contact me
